@@ -1,0 +1,65 @@
+#! /usr/bin/env bash
+
+usage() {
+    cat >&2 <<EOF
+Usage: encfs_helper {open|close|create}
+
+   create /path/to/volume /path/to/keyfile
+       a keyfile '-' generates a random key, which is written to
+       \$PWD/\$(basename \$volume_path)
+
+   open /path/to/volume /path/to/keyfile [/path/to/mountpoint]
+       volumes are mounted under \$XDG_RUNTIME_DIR by default
+
+   close /path/to/mountpoint
+EOF
+    exit 1
+}
+
+#
+# Run
+#
+
+set -e
+umask 077
+
+progmode=$1
+
+case "$progmode" in
+    'open')
+        volume=${1?Volume}
+        keyfile=${2?Key file}
+        mountpoint=${3:-$XDG_RUNTIME_DIR/mnt/$(basename "$volume")}
+        yes | encfs \
+                  --standard \
+                  --extpass="gpg --batch -d $keyfile" \
+                  "$volume" "$mountpoint"
+        echo "$mountpoint"
+    ;;
+
+    'close')
+        if mountpoint -q "$mountpoint" ; then
+            fusermount -u "$mountpoint"
+        fi
+    ;;
+
+    'create')
+        volume=${1?Volume}
+        keyfile=${2?Key file}
+
+        [[ -e $volume/.encfs6.xml ]] && exit 0
+
+        if [[ "$keyfile" = '-' ]] ; then
+            keytmp=$(mktemp)
+            head -c512 /dev/urandom | gpg --batch -o "$keytmp" -e
+        fi
+
+        tmpmnt=$(mktemp -d)
+        trap "fusermount -u $tmpmnt; rmdir $tmpmnt" EXIT QUIT INT TERM
+        $0 open "$volume" "$keyfile" "$tmpmnt"
+        gpg --batch -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
+        ;;
+
+    *)
+        usage
+esac
