@@ -44,14 +44,15 @@ case "$progmode" in
         yes | encfs \
                   --extpass="gpg --batch -d $keyfile" \
                   "$volume" "$mountpoint"
+
         echo "$mountpoint"
-    ;;
+        ;;
 
     'close')
         if mountpoint -q "$mountpoint" ; then
             fusermount -u "$mountpoint"
         fi
-    ;;
+        ;;
 
     'create')
         volume=${1?Volume}
