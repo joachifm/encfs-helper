@@ -39,6 +39,8 @@ case "$progmode" in
         volume=${1?Volume}
         keyfile=${2?Key file}
         mountpoint=${3:-$XDG_RUNTIME_DIR/mnt/$(basename "$volume")}
+
+        mkdir -p "$mountpoint"
         yes | encfs \
                   --standard \
                   --extpass="gpg --batch -d $keyfile" \
