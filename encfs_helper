@@ -32,7 +32,7 @@ EOF
 set -e
 umask 077
 
-progmode=$1
+progmode=$1 ; shift || progmode='usage'
 
 case "$progmode" in
     'open')
