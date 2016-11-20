@@ -72,9 +72,14 @@ case "$progmode" in
             mv "$keytmp" "$keyfile"
         fi
 
+        # Create new volume
         tmpmnt=$(mktemp -d)
-        trap "fusermount -u $tmpmnt; rmdir $tmpmnt" EXIT QUIT INT TERM
-        $0 open "$volume" "$keyfile" "$tmpmnt"
+        trap "fusermount -u $tmpmnt; rmdir $tmpmnt; rm -f $keytmp" \
+             EXIT QUIT INT TERM
+        yes | encfs \
+                  --standard \
+                  --extpass="gpg --batch -d $keyfile" \
+                  "$volume" "$tmpmnt"
         gpg --batch -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
 
         # Report
