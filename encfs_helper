@@ -60,9 +60,16 @@ case "$progmode" in
 
         [[ -e "$volume/.encfs6.xml" ]] && exit 0
 
+        # Generate keyfile if necessary
         if [[ "$keyfile" = '-' ]] ; then
+            keyfile="$PWD/$(basename "$volume")_key.gpg"
             keytmp=$(mktemp)
-            head -c512 /dev/urandom | gpg --batch -o "$keytmp" -e
+            head -c512 /dev/urandom | gpg --batch -e >"$keytmp"
+            if [[ -e "$keyfile" ]] ; then
+                echo "$0: keyfile $keyfile exists; refusing to overwrite" >&2
+                exit 1
+            fi
+            mv "$keytmp" "$keyfile"
         fi
 
         tmpmnt=$(mktemp -d)
