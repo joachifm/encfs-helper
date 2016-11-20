@@ -57,7 +57,7 @@ case "$progmode" in
         volume=${1?Volume}
         keyfile=${2?Key file}
 
-        [[ -e $volume/.encfs6.xml ]] && exit 0
+        [[ -e "$volume/.encfs6.xml" ]] && exit 0
 
         if [[ "$keyfile" = '-' ]] ; then
             keytmp=$(mktemp)
