@@ -2,7 +2,7 @@
 
 usage() {
     cat >&2 <<EOF
-Usage: encfs_helper {open|close|create}
+Usage: encfs_helper {open|close|create|snap}
 
    create /path/to/volume /path/to/keyfile
        a keyfile '-' generates a random key, which is written to
@@ -12,6 +12,15 @@ Usage: encfs_helper {open|close|create}
        volumes are mounted under \$XDG_RUNTIME_DIR by default
 
    close /path/to/mountpoint
+
+   snap /path/to/volume
+       create a snapshot of volume under /path/to/volume_snap
+
+       recovery: unpack each incremental archive in chronological order to the
+       same directory.
+
+       verify incremental archives: sha256sum -c \$snapdir/MANIFEST
+       verify the manifest itself : sha256sum -c \$snapdir/MANIFEST.SHA256
 EOF
     exit 1
 }
@@ -58,6 +67,56 @@ case "$progmode" in
         trap "fusermount -u $tmpmnt; rmdir $tmpmnt" EXIT QUIT INT TERM
         $0 open "$volume" "$keyfile" "$tmpmnt"
         gpg --batch -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
+
+        # Report
+        cat >"${volume}_create.log" <<EOF
+volume: $volume
+keyfile: $keyfile
+backup: ${volume}_encfs6.xml.gpg
+EOF
+
+        echo "${volume}_create.log"
+        ;;
+
+    'snap')
+        volume=${1?Volume}
+        snapdir=${2:-${volume}_snaps}
+
+        # Derived parameters
+        volname=$(basename "$volume")
+        archivefile="$snapdir/${volname}_snap.$(date +%Y-%m-%d.%s).tar"
+        snarfile="$snapdir/${volname}_snap.snar"
+
+        if [[ ! -f "$volume"/.encfs6.xml ]] ; then
+            echo "$volume does not look like an encfs volume" >&2
+            exit 1
+        fi
+
+        # Create new archive file
+        mkdir -p "$snapdir"
+        chmod 700 "$snapdir"
+        (
+            cd "$(dirname "$volume")"
+            tar \
+                --create \
+                --exclude='.encfs6.xml' \
+                --file="$archivefile" \
+                --listed-incremental="$snarfile" \
+                "$(basename "$volume")"
+        )
+        chmod -w "$archivefile"
+
+        # Record verifcation information
+        chmod +w "$snapdir"/MANIFEST{,.SHA256} 2>/dev/null || true
+        (
+            cd "$snapdir"
+            sha256sum --tag "$(basename "$archivefile")" >>"$PWD"/MANIFEST
+            sha256sum --tag MANIFEST                     >"$PWD"/MANIFEST.SHA256
+        )
+        chmod -w "$snapdir"/MANIFEST{,.SHA256}
+
+        # Report
+        echo "$archivefile"
         ;;
 
     *)
