@@ -42,7 +42,6 @@ case "$progmode" in
 
         mkdir -p "$mountpoint"
         yes | encfs \
-                  --standard \
                   --extpass="gpg --batch -d $keyfile" \
                   "$volume" "$mountpoint"
         echo "$mountpoint"
