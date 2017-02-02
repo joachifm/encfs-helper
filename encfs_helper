@@ -32,6 +32,11 @@ EOF
 set -e
 umask 077
 
+LC_ALL=C
+LC_COLLATE=$LC_ALL
+LC_MESSAGES=$LC_ALL
+export LC_ALL LC_COLLATE LC_MESSAGES
+
 progmode=$1 ; shift || progmode='usage'
 
 case "$progmode" in
