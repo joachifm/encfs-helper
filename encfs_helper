@@ -19,8 +19,8 @@ Usage: encfs_helper {open|close|create|snap}
        recovery: unpack each incremental archive in chronological order to the
        same directory.
 
-       verify incremental archives: sha1sum -c \$snapdir/MANIFEST
-       verify the manifest itself : sha1sum -c \$snapdir/MANIFEST.SHA1
+       verify incremental archives: b2sum -c \$snapdir/MANIFEST
+       verify the manifest itself : b2sum -c \$snapdir/MANIFEST.B2SUM
 EOF
     exit 1
 }
@@ -121,13 +121,13 @@ EOF
         chmod -w "$archivefile"
 
         # Record verifcation information
-        chmod +w "$snapdir"/MANIFEST{,.SHA1} 2>/dev/null || true
+        chmod +w "$snapdir"/MANIFEST{,.B2SUM} 2>/dev/null || true
         (
             cd "$snapdir"
-            sha1sum --tag "$(basename "$archivefile")" >>"$PWD"/MANIFEST
-            sha1sum --tag MANIFEST                     >"$PWD"/MANIFEST.SHA1
+            b2sum --tag "$(basename "$archivefile")" >>"$PWD"/MANIFEST
+            b2sum --tag MANIFEST                     >"$PWD"/MANIFEST.B2SUM
         )
-        chmod -w "$snapdir"/MANIFEST{,.SHA1}
+        chmod -w "$snapdir"/MANIFEST{,.B2SUM}
 
         # Report
         echo "$archivefile"
