@@ -38,7 +38,7 @@ case "$progmode" in
     'open')
         volume=${1?Volume}
         keyfile=${2?Key file}
-        mountpoint=${3:-$XDG_RUNTIME_DIR/mnt/$(basename "$volume")}
+        mountpoint=${3:-${XDG_RUNTIME_DIR:-/run/user/$UID}/mnt/${volume##*/}}
 
         mkdir -p "$mountpoint"
         yes | encfs \
@@ -62,7 +62,7 @@ case "$progmode" in
 
         # Generate keyfile if necessary
         if [[ "$keyfile" = '-' ]] ; then
-            keyfile="$PWD/$(basename "$volume")_key.gpg"
+            keyfile=$PWD/${volume##*/}_key.gpg
             keytmp=$(mktemp)
             head -c512 /dev/urandom | gpg --batch -e >"$keytmp"
             if [[ -e "$keyfile" ]] ; then
@@ -97,7 +97,7 @@ EOF
         snapdir=${2:-${volume}_snaps}
 
         # Derived parameters
-        volname=$(basename "$volume")
+        volname=${volume##*/}
         archivefile="$snapdir/${volname}_snap.$(date +%Y-%m-%d.%s).tar"
         snarfile="$snapdir/${volname}_snap.snar"
 
@@ -116,7 +116,7 @@ EOF
                 --exclude='.encfs6.xml' \
                 --file="$archivefile" \
                 --listed-incremental="$snarfile" \
-                "$(basename "$volume")"
+                "${volume##*/}"
         )
         chmod -w "$archivefile"
 
@@ -124,8 +124,8 @@ EOF
         chmod +w "$snapdir"/MANIFEST{,.B2SUM} 2>/dev/null || true
         (
             cd "$snapdir"
-            b2sum --tag "$(basename "$archivefile")" >>"$PWD"/MANIFEST
-            b2sum --tag MANIFEST                     >"$PWD"/MANIFEST.B2SUM
+            b2sum --tag "${archivefile##*/}" >>"$PWD"/MANIFEST
+            b2sum --tag MANIFEST              >"$PWD"/MANIFEST.B2SUM
         )
         chmod -w "$snapdir"/MANIFEST{,.B2SUM}
 
