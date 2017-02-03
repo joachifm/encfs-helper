@@ -20,7 +20,7 @@ Usage: encfs_helper {open|close|create|snap}
        same directory.
 
        verify incremental archives: b2sum -c \$snapdir/MANIFEST
-       verify the manifest itself : b2sum -c \$snapdir/MANIFEST.B2SUM
+       verify the manifest itself : gpg --verify \$snapdir/MANIFEST.asc \$snapdir/MANIFEST
 EOF
     exit 1
 }
@@ -131,6 +131,11 @@ EOF
             cd "$snapdir"
             b2sum --tag "${archivefile##*/}" >>"$PWD"/MANIFEST
             b2sum --tag MANIFEST              >"$PWD"/MANIFEST.B2SUM
+            if [[ -f MANIFEST.asc ]] ; then
+                mv MANIFEST.asc{,.1}
+            fi
+            gpg -q --batch -bs --armor MANIFEST
+            rm -f MANIFEST.asc.1
         )
         chmod -w "$snapdir"/MANIFEST{,.B2SUM}
 
