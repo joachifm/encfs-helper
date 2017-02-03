@@ -54,6 +54,7 @@ case "$progmode" in
         ;;
 
     'close')
+        mountpoint=${1?Mountpoint}
         if mountpoint -q "$mountpoint" ; then
             fusermount -u "$mountpoint"
         fi
