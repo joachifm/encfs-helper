@@ -115,7 +115,7 @@ EOF
         mkdir -p "$snapdir"
         chmod 700 "$snapdir"
         (
-            cd "$(dirname "$volume")"
+            cd "${volume%/*}"
             tar \
                 --create \
                 --exclude='.encfs6.xml' \
