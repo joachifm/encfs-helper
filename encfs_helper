@@ -70,7 +70,8 @@ case "$progmode" in
         if [[ "$keyfile" = '-' ]] ; then
             keyfile=$PWD/${volume##*/}_key.gpg
             keytmp=$(mktemp)
-            head -c512 /dev/urandom | gpg --batch -e >"$keytmp"
+            keylen=512
+            head -c$keylen /dev/urandom | gpg -q --batch -e >"$keytmp"
             if [[ -e "$keyfile" ]] ; then
                 echo "$0: keyfile $keyfile exists; refusing to overwrite" >&2
                 exit 1
