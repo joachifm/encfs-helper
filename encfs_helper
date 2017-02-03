@@ -105,8 +105,8 @@ EOF
 
         # Derived parameters
         volname=${volume##*/}
-        archivefile="$snapdir/${volname}_snap.$(date +%Y-%m-%d.%s).tar"
-        snarfile="$snapdir/${volname}_snap.snar"
+        archivefile=$snapdir/${volname}_snap.$(date +%Y-%m-%d.%s).tar
+        snarfile=$snapdir/${volname}_snap.snar
 
         if [[ ! -f "$volume"/.encfs6.xml ]] ; then
             echo "$volume does not look like an encfs volume" >&2
