@@ -90,9 +90,9 @@ case "$progmode" in
 
         # Report
         cat >"${volume}_create.log" <<EOF
-volume: $volume
-keyfile: $keyfile
-backup: ${volume}_encfs6.xml.gpg
+volume=$volume
+keyfile=$keyfile
+encfs6_backup=${volume}_encfs6.xml.gpg
 EOF
 
         echo "${volume}_create.log"
