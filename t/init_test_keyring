@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+set -e
+umask 077
+
+export GNUPGHOME=$PWD/gnupg
+mkdir -p $GNUPGHOME
+cat >$GNUPGHOME/gpg.conf <<EOF
+no-greeting
+default-recipient encfs_helper_test@localhost.localdomain
+EOF
+gpg --batch \
+    --pinentry-mode loopback \
+    --passphrase '' \
+    --quick-gen-key encfs_helper_test@localhost.localdomain

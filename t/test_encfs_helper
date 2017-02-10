@@ -1,0 +1,85 @@
+#! /usr/bin/env bash
+
+set -e
+umask 077
+
+topdir=$PWD
+prog=$PWD/../encfs_helper
+
+export GNUPGHOME=$topdir/gnupg
+if [[ ! -d "$GNUPGHOME" ]] ; then
+    $topdir/init_test_keyring
+fi
+
+workdir=$(mktemp -d)
+if [[ -z "$KEEP_WORKDIR" ]] ; then
+    trap "rm -rf '$workdir'" EXIT QUIT INT TERM
+fi
+(
+    cd $workdir
+
+    # Basic creation
+    $prog create $PWD/crypt - &>/dev/null
+
+    # Create some files in the crypted volume
+    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
+    for i in $(seq 1 10) ; do
+        dd status=none \
+           if=/dev/urandom of=$PWD/mnt/file_$i \
+           bs=1M count=1
+    done
+    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close $PWD/mnt
+    mountpoint -q $PWD/mnt && false
+
+    # Verify content after close/open
+    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
+    (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
+    $prog close $PWD/mnt
+
+    # Create initial, full snapshot
+    $prog snap $PWD/crypt
+    sleep 1
+
+    # Create a few incremental incremental snapshots
+    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
+    for i in $(seq 11 20) ; do
+        dd status=none \
+           if=/dev/urandom of=$PWD/mnt/file_$i \
+           bs=1M count=1
+    done
+    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close $PWD/mnt
+    $prog snap $PWD/crypt
+    sleep 1
+
+    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
+    for i in $(seq 21 30) ; do
+        dd status=none \
+           if=/dev/urandom of=$PWD/mnt/file_$i \
+           bs=1M count=1
+    done
+    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close $PWD/mnt
+    $prog snap $PWD/crypt
+    sleep 1
+
+    (cd $PWD/crypt_snaps; \
+     b2sum --status -c MANIFEST; \
+     b2sum --status -c MANIFEST.B2SUM; \
+     gpg --verify MANIFEST.asc MANIFEST)
+
+    # Test recovery
+    mv $PWD/crypt{,.old}
+    for snap in $PWD/crypt_snaps/*.tar ; do
+        tar xf $snap -C $PWD
+    done
+    gpg -q -d $PWD/crypt_encfs6.xml.gpg >$PWD/crypt/.encfs6.xml
+    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
+    (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
+    $prog close $PWD/mnt
+)
+
+gpg-connect-agent killagent /bye >/dev/null
+
+echo "ok"
