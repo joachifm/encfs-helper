@@ -118,15 +118,13 @@ EOF
         # Create new archive file
         mkdir -p "$snapdir"
         chmod 700 "$snapdir"
-        (
-            cd "${volume%/*}"
-            tar \
-                --create \
-                --exclude='.encfs6.xml' \
-                --file="$archivefile" \
-                --listed-incremental="$snarfile" \
-                "${volume##*/}"
-        )
+        tar \
+            --directory="${volume%/*}" \
+            --create \
+            --exclude='.encfs6.xml' \
+            --file="$archivefile" \
+            --listed-incremental="$snarfile" \
+            "${volume##*/}"
         chmod -w "$archivefile"
 
         # Record verifcation information
