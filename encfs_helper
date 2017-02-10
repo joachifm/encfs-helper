@@ -63,7 +63,10 @@ case "$progmode" in
         volume=${1?Volume}
         keyfile=${2?Key file}
 
-        [[ -e "$volume/.encfs6.xml" ]] && exit 0
+        if [[ -e "$volume/.encfs6.xml" ]] ; then
+            echo "$0: looks like $volume is an encfs volume; doing nothing" >&2
+            exit 0
+        fi
 
         # Generate keyfile if necessary
         if [[ "$keyfile" = '-' ]] ; then
