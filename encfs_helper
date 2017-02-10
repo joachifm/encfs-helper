@@ -83,7 +83,7 @@ case "$progmode" in
 
         # Create new volume
         tmpmnt=$(mktemp -d)
-        trap "fusermount -u $tmpmnt; rmdir $tmpmnt; rm -f $keytmp" \
+        trap "fusermount -u '$tmpmnt'; rmdir '$tmpmnt'; rm -f '$keytmp'" \
              EXIT QUIT INT TERM
         yes | encfs \
                   --standard \
