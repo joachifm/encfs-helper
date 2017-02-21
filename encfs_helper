@@ -83,6 +83,8 @@ case "$progmode" in
 
         # Create new volume
         tmpmnt=$(mktemp -d)
+        # we want this to expand now rather than when signalled
+        # shellcheck disable=SC2064
         trap "fusermount -u '$tmpmnt'; rmdir '$tmpmnt'; rm -f '$keytmp'" \
              EXIT QUIT INT TERM
         yes | encfs \
