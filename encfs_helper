@@ -69,6 +69,11 @@ case "$progmode" in
         fi
 
         # Generate keyfile if necessary
+        #
+        # A keyfile comprises a certain number of random bytes
+        # and serves as the EncFS volume passphrase.  The
+        # keyfile is symmetrically encrypted against a selected
+        # pgp key for on-disk storage.
         if [[ "$keyfile" = '-' ]] ; then
             keyfile=$PWD/${volume##*/}_key.gpg
             keytmp=$(mktemp)
@@ -109,6 +114,7 @@ EOF
         ;;
 
     'snap')
+        # Parameters
         volume=${1?Volume}
         snapdir=${2:-${volume}_snaps}
 
