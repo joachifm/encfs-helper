@@ -95,8 +95,13 @@ case "$progmode" in
 
         # Report
         cat >"${volume}_create.log" <<EOF
+# Path to EncFS volume
 volume=$volume
+
+# The keyfile used to unlock the EncFS volume
 keyfile=$keyfile
+
+# Encrypted copy of the EncFS volume configuration
 encfs6_backup=${volume}_encfs6.xml.gpg
 EOF
 
