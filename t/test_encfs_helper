@@ -71,10 +71,7 @@ fi
 
     # Test recovery
     mv $PWD/crypt{,.old}
-    for snap in $PWD/crypt_snaps/*.tar ; do
-        tar xf $snap -C $PWD
-    done
-    gpg -q -d $PWD/crypt_encfs6.xml.gpg >$PWD/crypt/.encfs6.xml
+    $prog recover $PWD/crypt_snaps $PWD/crypt_encfs6.xml.gpg $PWD/crypt
     $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
     (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
     $prog close $PWD/mnt

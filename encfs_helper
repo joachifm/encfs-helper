@@ -21,6 +21,9 @@ Usage: encfs_helper {open|close|create|snap}
 
        verify incremental archives: b2sum -c \$snapdir/MANIFEST
        verify the manifest itself : gpg --verify \$snapdir/MANIFEST.asc \$snapdir/MANIFEST
+
+   recover /path/to/volume_snap /path/to/volume_encfs6.xml.gpg /path/to/volume
+       recreate EncFS volume from snapshots and backup EncFS configuration file
 EOF
     exit 1
 }
@@ -131,6 +134,9 @@ EOF
         # Create new archive file
         mkdir -p "$snapdir"
         chmod 700 "$snapdir"
+        if [[ -e "$snarfile" ]] && [[ ! -w "$snarfile" ]] ; then
+            chmod +w "$snarfile"
+        fi
         tar \
             --directory="${volume%/*}" \
             --create \
@@ -138,7 +144,7 @@ EOF
             --file="$archivefile" \
             --listed-incremental="$snarfile" \
             "${volume##*/}"
-        chmod -w "$archivefile"
+        chmod -w "$archivefile" "$snarfile"
 
         # Record verifcation information
         chmod +w "$snapdir"/MANIFEST{,.B2SUM} 2>/dev/null || true
@@ -152,12 +158,36 @@ EOF
             $GPG -bs --armor MANIFEST
             rm -f MANIFEST.asc.1
         )
-        chmod -w "$snapdir"/MANIFEST{,.B2SUM}
+        chmod -w "$snapdir"/MANIFEST{,.B2SUM,.asc}
 
         # Report
         echo "$archivefile"
         ;;
 
+    'recover')
+        snapdir=${1?Snapshot directory}
+        encfsbakfile=${2?EncFS configuration file backup}
+        volume=${3?Volume directory}
+
+        if [[ ! -d "$snapdir" ]] ; then
+            echo "no such directory: '$snapdir'" >&2
+            exit 2
+        fi
+        if [[ ! -f "$encfsbakfile" ]] ; then
+            echo "no such file: '$encfsbakfile'" >&2
+            exit 2
+        fi
+        if [[ -e "$volume" ]] ; then
+            echo "volume path '$volume' exists; refusing to overwrite" >&2
+            exit 2
+        fi
+
+        mkdir -p "$volume"
+        for snap in "$snapdir"/*.tar ; do
+            tar xf "$snap" -C "${volume%/*}"
+        done
+        $GPG -d "$encfsbakfile" >"$volume"/.encfs6.xml
+        ;;
     *)
         usage
 esac
