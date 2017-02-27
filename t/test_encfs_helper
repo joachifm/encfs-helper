@@ -6,6 +6,8 @@ umask 077
 topdir=$PWD
 prog=$PWD/../encfs_helper
 
+TESTLOG=$(mktemp)
+
 export GNUPGHOME=$topdir/gnupg
 if [[ ! -d "$GNUPGHOME" ]] ; then
     $topdir/init_test_keyring
@@ -19,6 +21,7 @@ fi
     cd $workdir
 
     # Basic creation
+    echo "testing basic creation" >&2
     $prog create $PWD/crypt - &>/dev/null
 
     # Create some files in the crypted volume
@@ -38,6 +41,7 @@ fi
     $prog close $PWD/mnt
 
     # Create initial, full snapshot
+    echo "testing snapshots" >&2
     $prog snap $PWD/crypt
     sleep 1
 
@@ -67,16 +71,20 @@ fi
     (cd $PWD/crypt_snaps; \
      b2sum --status -c MANIFEST; \
      b2sum --status -c MANIFEST.B2SUM; \
-     gpg --verify MANIFEST.asc MANIFEST)
+     gpg --verify MANIFEST.asc MANIFEST) &>/dev/null
 
     # Test recovery
+    echo "testing recovery ..." >&2
     mv $PWD/crypt{,.old}
     $prog recover $PWD/crypt_snaps $PWD/crypt_encfs6.xml.gpg $PWD/crypt
     $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
     (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
     $prog close $PWD/mnt
-)
+) 1>"$TESTLOG"
 
 gpg-connect-agent killagent /bye >/dev/null
 
-echo "ok"
+{
+    echo "ok"
+    echo "see log at $TESTLOG"
+} >&2
