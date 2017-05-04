@@ -42,6 +42,9 @@ export PATH
 LC_ALL=C
 export LC_ALL
 
+: ${XDG_RUNTIME_DIR:=/run/user/$UID}
+export XDG_RUNTIME_DIR
+
 GPG="$(command -v gpg2) -q --batch"
 
 progmode=$1 ; shift || progmode='usage'
@@ -50,7 +53,7 @@ case "$progmode" in
     'open')
         volume=${1?Volume}
         keyfile=${2?Key file}
-        mountpoint=${3:-${XDG_RUNTIME_DIR:-/run/user/$UID}/mnt/${volume##*/}}
+        mountpoint=${3:-$XDG_RUNTIME_DIR/mnt/${volume##*/}}
 
         mkdir -p "$mountpoint"
         yes | encfs \
