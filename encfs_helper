@@ -32,7 +32,8 @@ EOF
 # Run
 #
 
-set -e
+set -o errexit -o nounset
+
 umask 077
 
 LC_ALL=C
