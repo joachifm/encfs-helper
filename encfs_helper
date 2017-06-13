@@ -45,7 +45,7 @@ export LC_ALL
 : ${XDG_RUNTIME_DIR:=/run/user/$UID}
 export XDG_RUNTIME_DIR
 
-GPG="$(command -v gpg2) -q --batch"
+readonly gpg2="$(command -v gpg2) -q --batch"
 
 progmode=$1 ; shift || progmode='usage'
 
@@ -57,7 +57,7 @@ case "$progmode" in
 
         mkdir -p "$mountpoint"
         yes | encfs \
-                  --extpass="$GPG -d $keyfile" \
+                  --extpass="$gpg2 -d '$keyfile'" \
                   "$volume" "$mountpoint"
 
         echo "$mountpoint"
@@ -88,7 +88,7 @@ case "$progmode" in
             keyfile=$PWD/${volume##*/}_key.gpg
             keytmp=$(mktemp)
             keylen=512
-            head -c$keylen /dev/urandom | $GPG -e >"$keytmp"
+            head -c$keylen /dev/urandom | $gpg2 -e >"$keytmp"
             if [[ -e "$keyfile" ]] ; then
                 echo "$0: keyfile $keyfile exists; refusing to overwrite" >&2
                 exit 1
@@ -104,9 +104,9 @@ case "$progmode" in
              EXIT QUIT INT TERM
         yes | encfs \
                   --standard \
-                  --extpass="$GPG -d $keyfile" \
+                  --extpass="$gpg2 -d '$keyfile'" \
                   "$volume" "$tmpmnt"
-        $GPG -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
+        $gpg2 -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
 
         # Report
         cat >"${volume}_create.log" <<EOF
@@ -162,7 +162,7 @@ EOF
             if [[ -f MANIFEST.asc ]] ; then
                 mv MANIFEST.asc{,.1}
             fi
-            $GPG -bs --armor MANIFEST
+            $gpg2 -bs --armor MANIFEST
             rm -f MANIFEST.asc.1
         )
         chmod -w "$snapdir"/MANIFEST{,.B2SUM,.asc}
@@ -190,10 +190,10 @@ EOF
         fi
 
         mkdir -p "$volume"
-        for snap in "$snapdir"/*.tar ; do
+        find "$snapdir" -type f -name '*.tar' -print0 | while IFS= read -r -d $'\0' snap ; do
             tar xf "$snap" -C "${volume%/*}"
         done
-        $GPG -d "$encfsbakfile" >"$volume"/.encfs6.xml
+        $gpg2 -d "$encfsbakfile" >"$volume"/.encfs6.xml
         ;;
     *)
         usage
