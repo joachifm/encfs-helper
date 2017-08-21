@@ -1,12 +1,14 @@
 #! /usr/bin/env bash
 
-set -e
+set -o errexit -o nounset
 umask 077
 
 topdir=$PWD
 prog=$PWD/../encfs_helper
+readonly topdir prog
 
 TESTLOG=$(mktemp)
+readonly TESTLOG
 
 export GNUPGHOME=$topdir/gnupg
 if [[ ! -d "$GNUPGHOME" ]] ; then
@@ -14,7 +16,8 @@ if [[ ! -d "$GNUPGHOME" ]] ; then
 fi
 
 workdir=$(mktemp -d)
-if [[ -z "$KEEP_WORKDIR" ]] ; then
+readonly workdir
+if [[ -z "${KEEP_WORKDIR:-}" ]] ; then
     trap "rm -rf '$workdir'" EXIT QUIT INT TERM
 fi
 (
@@ -22,64 +25,64 @@ fi
 
     # Basic creation
     echo "testing basic creation" >&2
-    $prog create $PWD/crypt - &>/dev/null
+    $prog create "$PWD/crypt" - &>/dev/null
 
     # Create some files in the crypted volume
-    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
-    for i in $(seq 1 10) ; do
+    $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
+    for i in {1..10} ; do
         dd status=none \
-           if=/dev/urandom of=$PWD/mnt/file_$i \
+           if=/dev/urandom of="$PWD/mnt/file_$i" \
            bs=1M count=1
     done
-    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
-    $prog close $PWD/mnt
-    mountpoint -q $PWD/mnt && false
+    (cd "$PWD/mnt" && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close "$PWD/mnt"
+    mountpoint -q "$PWD/mnt" && false
 
     # Verify content after close/open
-    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
-    (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
-    $prog close $PWD/mnt
+    $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
+    (cd "$PWD/mnt" && b2sum --status -c CHECKSUM.B2SUM)
+    $prog close "$PWD/mnt"
 
     # Create initial, full snapshot
     echo "testing snapshots" >&2
-    $prog snap $PWD/crypt
+    $prog snap "$PWD/crypt"
     sleep 1
 
     # Create a few incremental incremental snapshots
-    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
-    for i in $(seq 11 20) ; do
+    $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
+    for i in $(seq $((i+1)) $((i+10))) ; do
         dd status=none \
-           if=/dev/urandom of=$PWD/mnt/file_$i \
+           if=/dev/urandom of="$PWD/mnt/file_$i" \
            bs=1M count=1
     done
-    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
-    $prog close $PWD/mnt
-    $prog snap $PWD/crypt
+    (cd "$PWD/mnt" && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close "$PWD/mnt"
+    $prog snap "$PWD/crypt"
     sleep 1
 
-    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
-    for i in $(seq 21 30) ; do
+    $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
+    for i in $(seq $((i+1)) $((i+10))) ; do
         dd status=none \
-           if=/dev/urandom of=$PWD/mnt/file_$i \
+           if=/dev/urandom of="$PWD/mnt/file_$i" \
            bs=1M count=1
     done
-    (cd $PWD/mnt && b2sum --tag ./file_* >CHECKSUM.B2SUM)
-    $prog close $PWD/mnt
-    $prog snap $PWD/crypt
+    (cd "$PWD/mnt" && b2sum --tag ./file_* >CHECKSUM.B2SUM)
+    $prog close "$PWD/mnt"
+    $prog snap "$PWD/crypt"
     sleep 1
 
-    (cd $PWD/crypt_snaps; \
+    (cd "$PWD/crypt_snaps" ; \
      b2sum --status -c MANIFEST; \
      b2sum --status -c MANIFEST.B2SUM; \
      gpg --verify MANIFEST.asc MANIFEST) &>/dev/null
 
     # Test recovery
     echo "testing recovery ..." >&2
-    mv $PWD/crypt{,.old}
-    $prog recover $PWD/crypt_snaps $PWD/crypt_encfs6.xml.gpg $PWD/crypt
-    $prog open $PWD/crypt $PWD/crypt_key.gpg $PWD/mnt
-    (cd $PWD/mnt && b2sum --status -c CHECKSUM.B2SUM)
-    $prog close $PWD/mnt
+    mv "$PWD/crypt"{,.old}
+    $prog recover "$PWD/crypt_snaps" "$PWD/crypt_encfs6.xml.gpg" "$PWD/crypt"
+    $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
+    (cd "$PWD/mnt" && b2sum --status -c CHECKSUM.B2SUM)
+    $prog close "$PWD/mnt"
 ) 1>"$TESTLOG"
 
 gpg-connect-agent killagent /bye >/dev/null
