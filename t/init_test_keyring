@@ -1,11 +1,11 @@
 #! /usr/bin/env bash
 
-set -e
+set -o errexit -o nounset
 umask 077
 
 export GNUPGHOME=$PWD/gnupg
-mkdir -p $GNUPGHOME
-cat >$GNUPGHOME/gpg.conf <<EOF
+mkdir -p "$GNUPGHOME"
+cat >"$GNUPGHOME/gpg.conf" <<EOF
 no-greeting
 default-recipient encfs_helper_test@localhost.localdomain
 EOF
