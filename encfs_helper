@@ -52,7 +52,7 @@ export XDG_RUNTIME_DIR
 
 readonly gpg2="$(command -v gpg2) -q --batch"
 
-progmode=$1 ; shift || progmode='usage'
+progmode=${1:-} ; shift || progmode='usage'
 
 case "$progmode" in
     'open')
