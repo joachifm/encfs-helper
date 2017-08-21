@@ -32,6 +32,11 @@ EOF
 # Run
 #
 
+[ -n "${BASH_VERSION:-}" ] || {
+    echo "This script requires Bourne-Again Shell" >&2
+    exit 1
+}
+
 set -o errexit -o nounset
 
 umask 077
