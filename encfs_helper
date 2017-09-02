@@ -89,6 +89,11 @@ case "$progmode" in
         keyfile=${2?Key file}
         tmpdir=$(mktemp -d)
 
+        if [[ ${volume:0:1} != / ]] ; then
+            volume=$PWD/$volume
+        fi
+        readonly volume
+
         if [[ -e "$volume/.encfs6.xml" ]] ; then
             echo "$0: looks like $volume is an encfs volume; doing nothing" >&2
             exit 0
