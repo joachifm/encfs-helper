@@ -60,6 +60,16 @@ case "$progmode" in
         keyfile=${2?Key file}
         mountpoint=${3:-$XDG_RUNTIME_DIR/mnt/${volume##*/}}
 
+        if [[ ${volume:0:1} != / ]] ; then
+            volume=$PWD/$volume
+        fi
+        readonly volume
+
+        if [[ ${mountpoint:0:1} != / ]] ; then
+            mountpoint=$PWD/$mountpoint
+        fi
+        readonly mountpoint
+
         mkdir -p "$mountpoint"
         yes | encfs \
                   --extpass="$gpg2 -d '$keyfile'" \
