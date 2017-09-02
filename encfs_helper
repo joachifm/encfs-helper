@@ -77,6 +77,7 @@ case "$progmode" in
     'create')
         volume=${1?Volume}
         keyfile=${2?Key file}
+        tmpdir=$(mktemp -d)
 
         if [[ -e "$volume/.encfs6.xml" ]] ; then
             echo "$0: looks like $volume is an encfs volume; doing nothing" >&2
@@ -91,7 +92,7 @@ case "$progmode" in
         # pgp key for on-disk storage.
         if [[ "$keyfile" = '-' ]] ; then
             keyfile=$PWD/${volume##*/}_key.gpg
-            keytmp=$(mktemp)
+            keytmp=$(mktemp -p "$tmpdir")
             keylen=512
             head -c$keylen /dev/urandom | $gpg2 -e >"$keytmp"
             if [[ -e "$keyfile" ]] ; then
@@ -105,7 +106,7 @@ case "$progmode" in
         tmpmnt=$(mktemp -d)
         # we want this to expand now rather than when signalled
         # shellcheck disable=SC2064
-        trap "fusermount -u '$tmpmnt'; rmdir '$tmpmnt'" \
+        trap "fusermount -u '$tmpmnt'; rmdir '$tmpmnt'; rm -rf '$tmpdir'" \
              EXIT QUIT INT TERM
         yes | encfs \
                   --standard \
