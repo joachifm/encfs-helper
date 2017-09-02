@@ -25,7 +25,7 @@ fi
 
     # Basic creation
     echo "testing basic creation" >&2
-    $prog create "$PWD/crypt" - &>/dev/null
+    $prog create crypt - &>/dev/null
 
     # Create some files in the crypted volume
     $prog open "$PWD/crypt" "$PWD/crypt_key.gpg" "$PWD/mnt"
