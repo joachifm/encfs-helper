@@ -16,9 +16,7 @@ Usage: encfs_helper {open|close|create|snap}
    snap /path/to/volume
        create a snapshot of volume under /path/to/volume_snap
 
-       recovery: unpack each incremental archive in chronological order to the
-       same directory.
-
+       recover: unpack incremental archives in chronlogical order
        verify incremental archives: b2sum -c \$snapdir/MANIFEST
        verify the manifest itself : gpg --verify \$snapdir/MANIFEST.asc \$snapdir/MANIFEST
 
