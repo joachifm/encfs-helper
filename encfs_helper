@@ -168,7 +168,7 @@ EOF
             "${volume##*/}"
         chmod -w "$archivefile" "$snarfile"
 
-        # Record verifcation information
+        # Record verification information
         chmod +w "$snapdir"/MANIFEST{,.B2SUM} 2>/dev/null || true
         (
             cd "$snapdir"
