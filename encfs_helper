@@ -155,8 +155,7 @@ EOF
         fi
 
         # Create new archive file
-        mkdir -p "$snapdir"
-        chmod 700 "$snapdir"
+        install -d -m 700 "$snapdir"
         if [[ -e "$snarfile" ]] && [[ ! -w "$snarfile" ]] ; then
             chmod +w "$snarfile"
         fi
