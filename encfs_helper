@@ -42,7 +42,7 @@ umask 077
 set -a
 PATH=/usr/bin
 LC_ALL=C
-: ${XDG_RUNTIME_DIR:=/run/user/$UID}
+: "${XDG_RUNTIME_DIR:=/run/user/$UID}"
 set +a
 
 readonly gpg2="$(command -v gpg2) -q --batch"
