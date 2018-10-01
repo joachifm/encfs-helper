@@ -39,14 +39,11 @@ set -o errexit -o nounset
 
 umask 077
 
+set -a
 PATH=/usr/bin
-export PATH
-
 LC_ALL=C
-export LC_ALL
-
 : ${XDG_RUNTIME_DIR:=/run/user/$UID}
-export XDG_RUNTIME_DIR
+set +a
 
 readonly gpg2="$(command -v gpg2) -q --batch"
 
