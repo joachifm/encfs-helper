@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+# -*- mode: shell-script; -*-
 
 usage() {
     cat >&2 <<EOF
