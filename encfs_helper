@@ -123,6 +123,7 @@ case "$progmode" in
                   --standard \
                   --extpass="$gpg2 -d '$keyfile'" \
                   "$volume" "$tmpmnt"
+        chattr +d "$volume" "$volume/.encfs6.xml" || true
         $gpg2 -o "${volume}_encfs6.xml.gpg" -e "$volume/.encfs6.xml"
 
         # Report
