@@ -46,7 +46,9 @@ LC_ALL=C
 : "${XDG_RUNTIME_DIR:=/run/user/$UID}"
 set +a
 
-readonly gpg2="$(command -v gpg2) -q --batch"
+gpg2exe=$(command -v gpg2)
+gpg2="$gpg2exe -q --batch"
+readonly gpg2exe gpg2
 
 progmode=${1:-} ; shift || progmode='usage'
 
