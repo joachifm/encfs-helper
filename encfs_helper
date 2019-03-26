@@ -114,7 +114,7 @@ case "$progmode" in
                 echo "$0: keyfile $keyfile exists; refusing to overwrite" >&2
                 exit 1
             fi
-            mv "$keytmp" "$keyfile"
+            mv -T "$keytmp" "$keyfile"
         fi
 
         # Create new volume
