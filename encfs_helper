@@ -67,6 +67,9 @@ case "$progmode" in
         readonly mountpoint
 
         mkdir -p "$mountpoint"
+        chown "+$UID:+$UID" "$mountpoint"
+        chmod 700 "$mountpoint"
+
         yes | encfs \
                   --extpass="$gpg2 -d '$keyfile'" \
                   "$volume" "$mountpoint"
