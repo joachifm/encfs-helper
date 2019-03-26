@@ -17,9 +17,9 @@ Usage: encfs_helper {open|close|create|snap}
    snap /path/to/volume
        create a snapshot of volume under /path/to/volume_snap
 
-       recover: unpack incremental archives in chronlogical order
-       verify incremental archives: b2sum -c \$snapdir/MANIFEST
-       verify the manifest itself : gpg --verify \$snapdir/MANIFEST.asc \$snapdir/MANIFEST
+       to recover: unpack incremental archives in chronological order
+       to verify incremental archives: b2sum -c \$snapdir/MANIFEST
+       to verify the manifest itself : gpg --verify \$snapdir/MANIFEST.asc \$snapdir/MANIFEST
 
    recover /path/to/volume_snap /path/to/volume_encfs6.xml.gpg /path/to/volume
        recreate EncFS volume from snapshots and backup EncFS configuration file
