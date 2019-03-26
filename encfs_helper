@@ -100,14 +100,13 @@ case "$progmode" in
 
         # Generate keyfile if necessary
         #
-        # A keyfile comprises a certain number of random bytes
-        # and serves as the EncFS volume passphrase.  The
-        # keyfile is symmetrically encrypted against a selected
-        # pgp key for on-disk storage.
+        # A keyfile comprises a certain number of random bytes and serves as
+        # the EncFS volume passphrase.  The keyfile is symmetrically encrypted
+        # against a selected pgp key for on-disk storage.
         if [[ "$keyfile" = '-' ]] ; then
             keyfile=$PWD/${volume##*/}_key.gpg
             keytmp=$(mktemp -p "$tmpdir")
-            keylen=512
+            keylen=512  # 4096 bits
             head -c$keylen /dev/urandom | $gpg2 -e >"$keytmp"
             if [[ -e "$keyfile" ]] ; then
                 echo "$0: keyfile $keyfile exists; refusing to overwrite" >&2
